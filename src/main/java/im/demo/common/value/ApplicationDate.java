@@ -6,8 +6,7 @@ import lombok.Setter;
 import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Locale;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -18,6 +17,10 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class ApplicationDate {
     public static final String UNKNOWN = "UK";
+
+    private static final String DIGIT_3_MONTH = "MMM";
+    private static final String DIGIT_2_DAY = "dd";
+    private static final String DIGIT_2_MONTH = "MM";
 
     private String date;
 
@@ -59,26 +62,53 @@ public class ApplicationDate {
                 .withLocale(locale)
                 .format(localDate);
 
+        List<String> replacedTargetDigits = new ArrayList<>();
         if (this.isYearOfMonthUnknown) {
-            if (ApplicationDateFormat.getFormatterByPattern(pattern).getPattern().contains("MMM")) {
-                int dayIndex = ApplicationDateFormat.getFormatterByPattern(pattern).getPattern().indexOf("MMM");
-                StringBuilder builder = new StringBuilder(formatted);
-                builder.replace(dayIndex, dayIndex + 3, "UK");
-                formatted = builder.toString();
-            } else if (ApplicationDateFormat.getFormatterByPattern(pattern).getPattern().contains("MM")) {
-                int dayIndex = ApplicationDateFormat.getFormatterByPattern(pattern).getPattern().indexOf("MM");
-                StringBuilder builder = new StringBuilder(formatted);
-                builder.replace(dayIndex, dayIndex + 2, "UK");
-                formatted = builder.toString();
-            }
+            final String targetDigit = getTargetMonthDigit(pattern);
+            replacedTargetDigits.add(targetDigit);
+            formatted = getReplacedFormattedString(formatted, pattern, targetDigit);
         }
 
         if (this.isDayOfMonthUnknown) {
-            int dayIndex = ApplicationDateFormat.getFormatterByPattern(pattern).getPattern().indexOf("dd");
-            StringBuilder builder = new StringBuilder(formatted);
-            builder.replace(dayIndex, dayIndex + 2, "UK");
-            formatted = builder.toString();
+            final String targetDigit = getTargetDayDigit(pattern);
+            replacedTargetDigits.add(targetDigit);
+            formatted = getReplacedFormattedString(formatted, pattern, targetDigit);
         }
+
+        //길이가 긴 DIGIT 순으로 정렬
+        replacedTargetDigits.sort(Comparator.comparingInt(String::length));
+
+        for (String targetDigit : replacedTargetDigits) {
+            formatted = formatted.replaceAll(targetDigit, UNKNOWN);
+        }
+
+        return formatted;
+    }
+
+    private String getTargetMonthDigit(String pattern) {
+        if (ApplicationDateFormat.getFormatterByPattern(pattern).getPattern().contains(DIGIT_3_MONTH)) {
+            return DIGIT_3_MONTH;
+        } else if (ApplicationDateFormat.getFormatterByPattern(pattern).getPattern().contains(DIGIT_2_MONTH)) {
+            return DIGIT_2_MONTH;
+        } else {
+            throw new IllegalFormatFlagsException(pattern);
+        }
+    }
+
+    private String getTargetDayDigit(String pattern) {
+        if (ApplicationDateFormat.getFormatterByPattern(pattern).getPattern().contains(DIGIT_2_DAY)) {
+            return DIGIT_2_DAY;
+        } else {
+            throw new IllegalFormatFlagsException(pattern);
+        }
+    }
+
+    private String getReplacedFormattedString(String formatted, String pattern, String targetDigit) {
+        final int dayIndex = pattern.indexOf(targetDigit);
+
+        StringBuilder builder = new StringBuilder(formatted);
+        builder.replace(dayIndex, dayIndex + targetDigit.length(), targetDigit);
+        formatted = builder.toString();
 
         return formatted;
     }
@@ -91,4 +121,5 @@ public class ApplicationDate {
                 ", isYearOfMonthUnknown=" + isYearOfMonthUnknown +
                 '}';
     }
+
 }
