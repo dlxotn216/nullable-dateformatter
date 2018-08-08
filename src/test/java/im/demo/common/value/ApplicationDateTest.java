@@ -59,8 +59,8 @@ public class ApplicationDateTest {
     public void 월_UK_포맷_테스트() {
         ApplicationDate applicationDate = new ApplicationDate("2018-UK-07");
 
-        String formattedDate1 = applicationDate.getFormattedDate(ApplicationDateFormat.SYS_DATE_01.getPattern());
-        String formattedDate2 = applicationDate.getFormattedDate(ApplicationDateFormat.SYS_DATE_02.getPattern());
+        String formattedDate1 = applicationDate.getFormattedDate(ApplicationDateFormat.SYS_DATE_01);
+        String formattedDate2 = applicationDate.getFormattedDate(ApplicationDateFormat.SYS_DATE_02);
 
         assertThat(formattedDate1).isEqualTo("2018-UK-07");
         assertThat(formattedDate2).isEqualTo("UK, 07, 2018");
@@ -73,8 +73,8 @@ public class ApplicationDateTest {
     public void 일_UK_포맷_테스트() {
         ApplicationDate applicationDate = new ApplicationDate("2018-08-UK");
 
-        String formattedDate1 = applicationDate.getFormattedDate(ApplicationDateFormat.SYS_DATE_01.getPattern());
-        String formattedDate2 = applicationDate.getFormattedDate(ApplicationDateFormat.SYS_DATE_02.getPattern());
+        String formattedDate1 = applicationDate.getFormattedDate(ApplicationDateFormat.SYS_DATE_01);
+        String formattedDate2 = applicationDate.getFormattedDate(ApplicationDateFormat.SYS_DATE_02);
 
         assertThat(formattedDate1).isEqualTo("2018-Aug-UK");
         assertThat(formattedDate2).isEqualTo("Aug, UK, 2018");
@@ -87,8 +87,8 @@ public class ApplicationDateTest {
     public void 일_월_UK_포맷_테스트(){
         ApplicationDate applicationDate = new ApplicationDate("2018-UK-UK");
 
-        String formattedDate1 = applicationDate.getFormattedDate(ApplicationDateFormat.SYS_DATE_01.getPattern());
-        String formattedDate2 = applicationDate.getFormattedDate(ApplicationDateFormat.SYS_DATE_02.getPattern());
+        String formattedDate1 = applicationDate.getFormattedDate(ApplicationDateFormat.SYS_DATE_01);
+        String formattedDate2 = applicationDate.getFormattedDate(ApplicationDateFormat.SYS_DATE_02);
 
         assertThat(formattedDate1).isEqualTo("2018-UK-UK");
         assertThat(formattedDate2).isEqualTo("UK, UK, 2018");
