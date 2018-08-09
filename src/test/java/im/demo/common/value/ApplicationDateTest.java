@@ -19,8 +19,8 @@ public class ApplicationDateTest {
         ApplicationDate applicationDate = new ApplicationDate("2018-08-07");
 
         assertThat(applicationDate.getDate()).isEqualTo("2018-08-07");
-        assertThat(applicationDate.getIsDayOfMonthUnknown()).isEqualTo(false);
-        assertThat(applicationDate.getIsYearOfMonthUnknown()).isEqualTo(false);
+        assertThat(applicationDate.getIsDayUnknown()).isEqualTo(false);
+        assertThat(applicationDate.getIsMonthUnknown()).isEqualTo(false);
 
         log.info("Created is " + applicationDate);
     }
@@ -30,8 +30,8 @@ public class ApplicationDateTest {
         ApplicationDate applicationDate = new ApplicationDate("2018-UK-07");
 
         assertThat(applicationDate.getDate()).isEqualTo("2018-01-07");
-        assertThat(applicationDate.getIsDayOfMonthUnknown()).isEqualTo(false);
-        assertThat(applicationDate.getIsYearOfMonthUnknown()).isEqualTo(true);
+        assertThat(applicationDate.getIsDayUnknown()).isEqualTo(false);
+        assertThat(applicationDate.getIsMonthUnknown()).isEqualTo(true);
         log.info("Created is " + applicationDate);
     }
 
@@ -40,8 +40,8 @@ public class ApplicationDateTest {
         ApplicationDate applicationDate = new ApplicationDate("2018-08-UK");
 
         assertThat(applicationDate.getDate()).isEqualTo("2018-08-01");
-        assertThat(applicationDate.getIsDayOfMonthUnknown()).isEqualTo(true);
-        assertThat(applicationDate.getIsYearOfMonthUnknown()).isEqualTo(false);
+        assertThat(applicationDate.getIsDayUnknown()).isEqualTo(true);
+        assertThat(applicationDate.getIsMonthUnknown()).isEqualTo(false);
         log.info("Created is " + applicationDate);
     }
 
@@ -50,8 +50,8 @@ public class ApplicationDateTest {
         ApplicationDate applicationDate = new ApplicationDate("2018-UK-UK");
 
         assertThat(applicationDate.getDate()).isEqualTo("2018-01-01");
-        assertThat(applicationDate.getIsDayOfMonthUnknown()).isEqualTo(true);
-        assertThat(applicationDate.getIsYearOfMonthUnknown()).isEqualTo(true);
+        assertThat(applicationDate.getIsDayUnknown()).isEqualTo(true);
+        assertThat(applicationDate.getIsMonthUnknown()).isEqualTo(true);
         log.info("Created is " + applicationDate);
     }
 

@@ -4,9 +4,9 @@ import im.demo.common.exception.ApplicationDateIsNotDefinedDateFormat;
 import im.demo.common.exception.IllegalApplicationDateFormatException;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.util.ObjectUtils;
 
+import javax.persistence.Embeddable;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.*;
@@ -16,8 +16,8 @@ import java.util.stream.Collectors;
  * Created by taesu on 2018-08-07.
  */
 @Getter
-@Setter
 @NoArgsConstructor
+@Embeddable
 public class ApplicationDate {
     public static final String UNKNOWN = "UK";
 
@@ -27,9 +27,13 @@ public class ApplicationDate {
 
     private String date;
 
-    private Boolean isDayOfMonthUnknown;
+    private Boolean isDayUnknown;
 
-    private Boolean isYearOfMonthUnknown;
+    private Boolean isMonthUnknown;
+
+    public ApplicationDate(LocalDate localDate) {
+        this(String.format("%s-%s-%s", localDate.getYear(), localDate.getMonth(), localDate.getDayOfMonth()));
+    }
 
     /**
      * date는 아래와 같이 UK를 포함할 수 있다.
@@ -48,32 +52,53 @@ public class ApplicationDate {
      * @param date
      */
     public ApplicationDate(String date) {
+        Objects.requireNonNull(date, "date는 null이 될 수 없습니다");
         String[] ymd = date.split("-");
         if (ymd.length != 3) {
             throw new IllegalArgumentException();
         }
 
-        this.isYearOfMonthUnknown = ObjectUtils.nullSafeEquals(ymd[1], UNKNOWN);
-        if (this.isYearOfMonthUnknown) {
+        this.isMonthUnknown = ObjectUtils.nullSafeEquals(ymd[1], UNKNOWN);
+        if (this.isMonthUnknown) {
             ymd[1] = "01";
         }
 
-        this.isDayOfMonthUnknown = ObjectUtils.nullSafeEquals(ymd[2], UNKNOWN);
-        if (this.isDayOfMonthUnknown) {
+        this.isDayUnknown = ObjectUtils.nullSafeEquals(ymd[2], UNKNOWN);
+        if (this.isDayUnknown) {
             ymd[2] = "01";
         }
 
         this.date = Arrays.stream(ymd).collect(Collectors.joining("-"));
     }
 
-    public String getFormattedDate(ApplicationDateFormat pattern) {
-        return getFormattedDate(pattern, Locale.US);
+    /**
+     * UK 관련 정보를 포함하는 Date 문자열이 필요할 때 사용한다.
+     * @return
+     */
+    public String getDate(){
+        return this.getFormattedDate(ApplicationDateFormat.ISO_LOCAL_DATE);
+    }
+
+    /**
+     * UK를 월, 일의 가장 작은 값(01월, 01일)으로 치환된
+     * Date 문자열을 반환한다.
+     *
+     * Query 등 필터링이 필요할 때 주로 사용한다.
+     *
+     * @return UK가 가장 작은 값으로 치환 된 날짜
+     */
+    public String getDateForFiltering(){
+        return this.date;
+    }
+
+    public String getFormattedDate(ApplicationDateFormat format) {
+        return getFormattedDate(format, Locale.US);
     }
 
     /**
      * 현재 날짜를 전달된 <code>format</code>으로 포매팅한 문자열을 반환한다.
      * <p>
-     * 각각 Unknown 관련 플래그에 따라 {@link #isDayOfMonthUnknown}, {@link #isYearOfMonthUnknown}
+     * 각각 Unknown 관련 플래그에 따라 {@link #isDayUnknown}, {@link #isMonthUnknown}
      * 포매팅 된 문자열에서 Month, Day의 값을 "UK"로 치환한다.
      *
      * @param format ApplicationDateFormat Applicatoin에서 지원하는 DateFormat enum
@@ -85,20 +110,20 @@ public class ApplicationDate {
         LocalDate localDate;
         try {
             localDate = LocalDate.parse(this.date, ApplicationDateFormat.ISO_LOCAL_DATE.getFormatter());
-        } catch (DateTimeParseException e) {
+        } catch (DateTimeParseException | NullPointerException e) {
             throw new ApplicationDateIsNotDefinedDateFormat(this.date);
         }
 
         String formatted = format.getFormatter().withLocale(locale).format(localDate);
 
         List<String> replacedTargetDigits = new ArrayList<>();
-        if (this.isYearOfMonthUnknown) {
+        if (this.isMonthUnknown) {
             final String targetDigit = getTargetMonthDigit(format.getPattern());
             replacedTargetDigits.add(targetDigit);
             formatted = replaceToTargetDigit(formatted, format.getPattern(), targetDigit);
         }
 
-        if (this.isDayOfMonthUnknown) {
+        if (this.isDayUnknown) {
             final String targetDigit = getTargetDayDigit(format.getPattern());
             replacedTargetDigits.add(targetDigit);
             formatted = replaceToTargetDigit(formatted, format.getPattern(), targetDigit);
@@ -151,9 +176,29 @@ public class ApplicationDate {
     public String toString() {
         return "ApplicationDate{" +
                 "date='" + date + '\'' +
-                ", isDayOfMonthUnknown=" + isDayOfMonthUnknown +
-                ", isYearOfMonthUnknown=" + isYearOfMonthUnknown +
+                ", isDayUnknown=" + isDayUnknown +
+                ", isMonthUnknown=" + isMonthUnknown +
                 '}';
     }
 
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) return true;
+        if (!(object instanceof ApplicationDate)) return false;
+
+        ApplicationDate that = (ApplicationDate) object;
+
+        if (date != null ? !date.equals(that.date) : that.date != null) return false;
+        if (isDayUnknown != null ? !isDayUnknown.equals(that.isDayUnknown) : that.isDayUnknown != null)
+            return false;
+        return isMonthUnknown != null ? isMonthUnknown.equals(that.isMonthUnknown) : that.isMonthUnknown == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = date != null ? date.hashCode() : 0;
+        result = 31 * result + (isDayUnknown != null ? isDayUnknown.hashCode() : 0);
+        result = 31 * result + (isMonthUnknown != null ? isMonthUnknown.hashCode() : 0);
+        return result;
+    }
 }
